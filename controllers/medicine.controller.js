@@ -1,38 +1,39 @@
-const medicineService = require('../services/medicine.service');
+const medicineService = require("../services/medicine.service");
+const { success, error } = require("../utils/response.util");
 
 exports.createMedicine = async (req, res) => {
   try {
-    const result = await medicineService.create(req.body, req.doctor.id);
-    res.status(201).json(result);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
+    const repId = req.user.id;
+    const med = await medicineService.createMedicine(req.body, repId);
+    return success(res, med, 201);
+  } catch (err) { return error(res, err.message, 400); }
 };
 
-exports.getAllMedicines = async (req, res) => {
-  const result = await medicineService.getAll();
-  res.json(result);
+exports.getMedicines = async (req, res) => {
+  try {
+    const meds = await medicineService.getAllMedicines();
+    return success(res, meds);
+  } catch (err) { return error(res, err.message); }
 };
 
-exports.getMedicineById = async (req, res) => {
-  const result = await medicineService.getById(req.params.id);
-  res.json(result);
+exports.getMedicine = async (req, res) => {
+  try {
+    const med = await medicineService.getMedicineById(req.params.id);
+    if (!med) return error(res, "Not found", 404);
+    return success(res, med);
+  } catch (err) { return error(res, err.message); }
 };
 
 exports.updateMedicine = async (req, res) => {
   try {
-    const result = await medicineService.update(req.params.id, req.body);
-    res.json(result);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
+    const updated = await medicineService.updateMedicine(req.params.id, req.body);
+    return success(res, updated);
+  } catch (err) { return error(res, err.message); }
 };
 
 exports.deleteMedicine = async (req, res) => {
   try {
-    await medicineService.remove(req.params.id);
-    res.json({ message: 'Medicine deleted' });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
+    await medicineService.deleteMedicine(req.params.id);
+    return success(res, "Deleted");
+  } catch (err) { return error(res, err.message); }
 };

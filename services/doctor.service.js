@@ -1,26 +1,21 @@
-// For now, use dummy data or MongoDB logic if you have models
+const Doctor = require("../models/doctor.model");
 
-exports.fetchAllDoctors = async () => {
-    return [
-        { id: 1, name: 'Dr. Arjun', specialization: 'Cardiology' },
-        { id: 2, name: 'Dr. Meera', specialization: 'Dermatology' },
-    ];
-};
-
-exports.fetchDoctorById = async (id) => {
-    const doctor = { id, name: 'Dr. Arjun', specialization: 'Cardiology' };
-    if (!doctor) throw new Error('Doctor not found');
-    return doctor;
-};
-
-exports.createDoctor = async (data) => {
-    return { message: 'Doctor created', doctor: data };
+exports.createDoctor = async (data, repId) => {
+  return await Doctor.create({ ...data, createdBy: repId });
 };
 
 exports.updateDoctor = async (id, data) => {
-    return { message: 'Doctor updated', doctor: { id, ...data } };
+  return await Doctor.findByIdAndUpdate(id, data, { new: true });
+};
+
+exports.getAllDoctors = async () => {
+  return await Doctor.find();
+};
+
+exports.getDoctorById = async (id) => {
+  return await Doctor.findById(id);
 };
 
 exports.deleteDoctor = async (id) => {
-    return { message: `Doctor with ID ${id} deleted` };
+  return await Doctor.findByIdAndDelete(id);
 };

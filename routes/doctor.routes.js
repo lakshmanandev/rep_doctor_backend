@@ -1,26 +1,13 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const doctorController = require('../controllers/doctor.controller');
-const verifyToken = require('../middlewares/auth.middleware');
+const doctorController = require("../controllers/doctor.controller");
+const { verifyToken, allowRoles } = require("../middlewares/auth.middleware");
 
-router.get('/dashboard', verifyToken, (req, res) => {
-    res.json({ message: `Welcome Doctor ID: ${req.doctor.id}` });
-});
-
-
-// GET all doctors
-router.get('/', doctorController.getAllDoctors);
-
-// GET doctor by ID
-router.get('/:id', doctorController.getDoctorById);
-
-// POST create new doctor
-router.post('/', doctorController.createDoctor);
-
-// PUT update doctor
-router.put('/:id', doctorController.updateDoctor);
-
-// DELETE doctor
-router.delete('/:id', doctorController.deleteDoctor);
+// Rep-only CRUD for doctors
+router.post("/", verifyToken, allowRoles("rep"), doctorController.createDoctor);
+router.post("/list", verifyToken, allowRoles("rep"), doctorController.getDoctors);
+router.get("/:id", verifyToken, allowRoles("rep"), doctorController.getDoctor);
+router.put("/:id", verifyToken, allowRoles("rep"), doctorController.updateDoctor);
+router.delete("/:id", verifyToken, allowRoles("rep"), doctorController.deleteDoctor);
 
 module.exports = router;

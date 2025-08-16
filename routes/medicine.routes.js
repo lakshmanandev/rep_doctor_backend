@@ -1,13 +1,15 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const medicineController = require('../controllers/medicine.controller');
-const verifyToken = require('../middlewares/auth.middleware');
+const medicineController = require("../controllers/medicine.controller");
+const { verifyToken, allowRoles } = require("../middlewares/auth.middleware");
 
-// Rep-only routes
-router.post('/', verifyToken, medicineController.createMedicine);
-router.get('/', medicineController.getAllMedicines);
-router.get('/:id', medicineController.getMedicineById);
-router.put('/:id', verifyToken, medicineController.updateMedicine);
-router.delete('/:id', verifyToken, medicineController.deleteMedicine);
+// Rep creates/updates/deletes medicine
+router.post("/", verifyToken, allowRoles("rep"), medicineController.createMedicine);
+router.put("/:id", verifyToken, allowRoles("rep"), medicineController.updateMedicine);
+router.delete("/:id", verifyToken, allowRoles("rep"), medicineController.deleteMedicine);
+
+// Anyone authenticated (doctor or rep) can list and read medicines
+router.get("/", verifyToken, medicineController.getMedicines);
+router.get("/:id", verifyToken, medicineController.getMedicine);
 
 module.exports = router;

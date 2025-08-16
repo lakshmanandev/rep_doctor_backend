@@ -24,6 +24,18 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
+app.get("/api/detectNumber", (req, res) => {
+    const msisdn = req.headers["x-msisdn"] || req.headers["x-up-calling-line-id"];
+    console.log("Detected MSISDN:", msisdn);
+
+    if (msisdn) {
+        res.json({ number: msisdn, detected: true });
+    } else {
+        res.json({ number: null, detected: false });
+    }
+});
+
+
 app.use('/api/auth', authRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/medicine', medicineRoutes);

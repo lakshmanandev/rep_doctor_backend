@@ -5,82 +5,51 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 
+const signToken = (payload) =>
+    jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || "7d" });
+
 // Register Rep
-exports.handleRepRegister = async ({ name, email, password }) => {
-    const exist = await Rep.findOne({ email });
-    if (exist) throw new Error('Email already exists');
-
-    const hashed = await bcrypt.hash(password, 10);
-    const rep = await Rep.create({ name, email, password: hashed });
-
-    return { message: 'Rep registered', rep: { id: rep._id, name: rep.name, email: rep.email } };
+exports.registerRep = async ({ name, email, password }) => {
+    const existing = await Rep.findOne({ email });
+    if (existing) throw new Error("Email already used");
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(password, salt);
+    const rep = await Rep.create({ name, email, password: hash });
+    const token = signToken({ id: rep._id, role: rep.role });
+    return { rep, token };
 };
 
 // Login Rep
-exports.handleRepLogin = async ({ email, password }) => {
+exports.loginRep = async ({ email, password }) => {
     const rep = await Rep.findOne({ email });
-    if (!rep) throw new Error('Rep not found');
-
-    const match = await bcrypt.compare(password, rep.password);
-    if (!match) throw new Error('Invalid password');
-
-    const token = jwt.sign({ id: rep._id, role: 'rep' }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-    return {
-        message: 'Login successful',
-        token,
-        rep: { id: rep._id, name: rep.name, email: rep.email }
-    };
+  if (!rep) throw new Error("Invalid credentials");
+  const match = await bcrypt.compare(password, rep.password);
+  if (!match) throw new Error("Invalid credentials");
+  const token = signToken({ id: rep._id, role: rep.role });
+  return { rep, token };
 };
 
 
 
 
 // 🔐 Register Doctor
-exports.handleDoctorRegister = async ({ name, email, password, specialization }) => {
-    const existingDoctor = await Doctor.findOne({ email });
-    if (existingDoctor) throw new Error('Email already registered');
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const newDoctor = new Doctor({
-        name,
-        email,
-        password: hashedPassword,
-        specialization,
-    });
-
-    await newDoctor.save();
-
-    return {
-        message: 'Doctor registered successfully',
-        doctor: {
-            id: newDoctor._id,
-            name: newDoctor.name,
-            email: newDoctor.email,
-            specialization: newDoctor.specialization,
-        },
-    };
+exports.registerDoctor = async ({  name, email, password, phone, specialization }) => {
+    const existing = await Doctor.findOne({ email });
+    if (existing) throw new Error("Email already used");
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(password, salt);
+    const doctor = await Doctor.create({ name, email, password: hash, phone, specialization });
+    const token = signToken({ id: doctor._id, role: "doctor" });
+    return { doctor, token };
 };
 
 // 🔐 Login Doctor (already explained earlier)
-exports.handleDoctorLogin = async ({ email, password }) => {
+exports.loginDoctor = async ({ email, password }) => {
     const doctor = await Doctor.findOne({ email });
-    if (!doctor) throw new Error('Doctor not found');
-
-    const isMatch = await bcrypt.compare(password, doctor.password);
-    if (!isMatch) throw new Error('Invalid password');
-
-    const token = jwt.sign({ id: doctor._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-    return {
-        message: 'Login successful',
-        token,
-        doctor: {
-            id: doctor._id,
-            name: doctor.name,
-            email: doctor.email,
-            specialization: doctor.specialization,
-        },
-    };
+  if (!doctor) throw new Error("Invalid credentials");
+  if (!doctor.password) throw new Error("Doctor has no password set");
+  const match = await bcrypt.compare(password, doctor.password);
+  if (!match) throw new Error("Invalid credentials");
+  const token = signToken({ id: doctor._id, role: "doctor" });
+  return { doctor, token };
 };

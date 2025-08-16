@@ -1,25 +1,21 @@
-const Medicine = require('../models/medicine.model');
+const Medicine = require("../models/medicine.model");
 
-exports.create = async (data, repId) => {
-  const med = await Medicine.create({ ...data, createdBy: repId });
-  return { message: 'Medicine created', medicine: med };
+exports.createMedicine = async (data, repId) => {
+  return await Medicine.create({ ...data, createdBy: repId });
 };
 
-exports.getAll = async () => {
-  return await Medicine.find().populate('createdBy', 'name email');
+exports.getAllMedicines = async () => {
+  return await Medicine.find();
 };
 
-exports.getById = async (id) => {
-  return await Medicine.findById(id).populate('createdBy', 'name email');
+exports.getMedicineById = async (id) => {
+  return await Medicine.findById(id);
 };
 
-exports.update = async (id, data) => {
-  const med = await Medicine.findByIdAndUpdate(id, data, { new: true });
-  if (!med) throw new Error('Medicine not found');
-  return { message: 'Updated', medicine: med };
+exports.updateMedicine = async (id, data) => {
+  return await Medicine.findByIdAndUpdate(id, data, { new: true });
 };
 
-exports.remove = async (id) => {
-  const deleted = await Medicine.findByIdAndDelete(id);
-  if (!deleted) throw new Error('Medicine not found');
+exports.deleteMedicine = async (id) => {
+  return await Medicine.findByIdAndDelete(id);
 };
