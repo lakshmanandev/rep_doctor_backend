@@ -1,10 +1,12 @@
 const express = require('express');
+const path = require("path");
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 const authRoutes = require('./routes/auth.routes');
 const doctorRoutes = require('./routes/doctor.routes');
 const medicineRoutes = require('./routes/medicine.routes');
+const fs = require("fs");
 
 const app = express();
 
@@ -24,18 +26,33 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.get("/api/detectNumber", (req, res) => {
-    const msisdn = req.headers["x-msisdn"] || req.headers["x-up-calling-line-id"];
-    console.log("Detected MSISDN:", msisdn);
+const uploadPath = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadPath)) {
+    fs.mkdirSync(uploadPath);
+}
 
-    if (msisdn) {
-        res.json({ number: msisdn, detected: true });
-    } else {
-        res.json({ number: null, detected: false });
-    }
+app.post("/sim-info", (req, res) => {
+    console.log("📩 Body from app:", req.body);
+
+    // Operator auto inject headers
+    console.log("📩 Headers from operator:");
+    console.log("x-msisdn:", req.headers["x-msisdn"]);
+    console.log("x-up-calling-line-id:", req.headers["x-up-calling-line-id"]);
+
+    // Decide number
+    const msisdn =
+        req.headers["x-msisdn"] || req.headers["x-up-calling-line-id"] || null;
+
+    console.log("📩 Detected MSISDN:", msisdn);
+
+    res.json({
+        success: true,
+        simData: req.body,
+        detectedNumber: msisdn,
+    });
 });
 
-
+app.use("/uploads", express.static(uploadPath));
 app.use('/api/auth', authRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/medicine', medicineRoutes);

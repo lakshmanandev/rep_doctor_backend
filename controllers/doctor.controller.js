@@ -4,9 +4,18 @@ const { success, error } = require("../utils/response.util");
 exports.createDoctor = async (req, res) => {
   try {
     const repId = req.user.id;
-    const doctor = await doctorService.createDoctor(req.body, repId);
+
+    // If file uploaded, set profilePic path
+    let doctorData = { ...req.body };
+    if (req.file) {
+      doctorData.profilePic = `/uploads/${req.file.filename}`;
+    }
+
+    const doctor = await doctorService.createDoctor(doctorData, repId);
     return success(res, doctor, 201);
-  } catch (err) { return error(res, err.message, 400); }
+  } catch (err) {
+    return error(res, err.message, 400);
+  }
 };
 
 exports.getDoctors = async (req, res) => {
@@ -26,9 +35,18 @@ exports.getDoctor = async (req, res) => {
 
 exports.updateDoctor = async (req, res) => {
   try {
-    const updated = await doctorService.updateDoctor(req.params.id, req.body);
-    return success(res, updated);
-  } catch (err) { return error(res, err.message); }
+    const doctorId = req.params.id;
+    let updateData = { ...req.body };
+
+    if (req.file) {
+      updateData.profilePic = `/uploads/${req.file.filename}`;
+    }
+
+    const doctor = await doctorService.updateDoctor(doctorId, updateData);
+    return success(res, doctor, 200);
+  } catch (err) {
+    return error(res, err.message, 400);
+  }
 };
 
 exports.deleteDoctor = async (req, res) => {

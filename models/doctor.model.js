@@ -7,6 +7,7 @@ const doctorSchema = new mongoose.Schema({
   specialization: { type: String },
   phone: { type: String },
   location: { type: String },
+  profilePic: { type: String },
   isVerified: { type: Boolean, default: false },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Rep" },
 }, { timestamps: true });
